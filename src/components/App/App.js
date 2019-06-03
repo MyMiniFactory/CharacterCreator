@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import { Group } from 'three'
+import { Group, Mesh, MeshStandardMaterial } from 'three'
 import axios from 'axios'
 
 import ThreeContainer from '../ThreeContainer'
@@ -54,6 +54,28 @@ class App extends Component {
         
         if ( process.env.NODE_ENV === 'development' ) {
             window.x = this
+            window.sceneManager = this.sceneManager
+
+            window.showUnifiedMesh = () => {
+                const unifiedGeom = this.sceneManager.exportUnifiedGeometry()
+
+                unifiedGeom.computeBoundingBox()
+
+                const mesh = new Mesh(
+                    unifiedGeom, 
+                    new MeshStandardMaterial({
+                        color: 0xffffff
+                    })
+                )
+
+                const container = this.sceneManager.getContainer()
+
+                container.remove(...container.children)
+
+                container.add(mesh)
+
+                console.log(unifiedGeom.boundingBox)
+            }
         }
     }
 

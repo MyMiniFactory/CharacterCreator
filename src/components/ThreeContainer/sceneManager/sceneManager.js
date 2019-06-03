@@ -1,6 +1,7 @@
-import { Matrix4, Vector3, Object3D, Group, Bone, Mesh, Material, Color } from 'three'
+import { Matrix4, Vector3, Object3D, Group, Bone, Mesh, Material, Color, BufferGeometry, Geometry } from 'three'
 import topologicalSort from 'toposort'
 import findMinGeometry from '../util/findMinGeometry'
+import { toCSG, fromCSG } from 'three-2-csg';
 
 /**
  * An object that holds a reference to a group of 3D objects (_container_).
@@ -330,6 +331,45 @@ class SceneManager {
 
         this._setColour( this.container, newColour )
 
+    }
+
+    getAllGeometries() {
+        /** @type { Geometry[] } */
+        const geometries = []
+
+        this.container.traverse( object => {
+            if ( object instanceof Mesh && object.isMesh ) { // no instanceof
+
+                // object.updateMatrix()
+
+                object.updateMatrixWorld()
+
+
+                const geometryClone = object.geometry instanceof BufferGeometry
+                    ? new Geometry().fromBufferGeometry( object.geometry )
+                    : object.geometry.clone()
+
+                geometryClone.applyMatrix( object.matrixWorld )
+
+                geometries.push( geometryClone )
+            }
+        })
+
+        return geometries
+    }
+
+    exportUnifiedGeometry() {
+        const geometries = this.getAllGeometries()
+
+        const csgGeometries = geometries.map( toCSG )
+
+        const unified = csgGeometries.reduce((prev, curr) => prev.union(curr))
+
+        return fromCSG( unified )
+    }
+
+    exportUnifiedGeometryAsBufferedGeometry() {
+        return new BufferGeometry().fromGeometry( this.exportUnifiedGeometry() )
     }
 }
 
