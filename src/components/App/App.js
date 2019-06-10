@@ -113,6 +113,14 @@ class App extends Component {
 
     /* ------------------------------------------------------------------------- */
 
+    getObject( objectId ) {
+        return this.state.objects.byId[ objectId ]
+    }
+
+    getPartType( partTypeId ) {
+        return this.state.partTypes.byId[ partTypeId ]
+    }
+
     getPartTypesArray() {
         const { partTypes } = this.state
 
@@ -125,12 +133,92 @@ class App extends Component {
         return partTypes.byId[ selectedPartTypeId ]
     }
 
+    getSelectedObjectId( partTypeId ) {
+        return this.state.selectedParts[ partTypeId ]
+    }
+
+    getSelectedObject( partTypeId ) {
+        const objectId = this.getSelectedObjectId( partTypeId )
+
+        return this.getObject( objectId )
+    }
+
     getObjectsByPartTypeId( partTypeId ) {
         const { byId, allIds } = this.state.objects
 
         const objects = allIds.map( id => byId[ id ] )
 
         return objects.filter( object => object.partTypeId === partTypeId )
+    }
+
+    getParentPartType( partTypeId ) {
+        const { partTypes } = this.state
+
+        const { parent } = partTypes.byId[ partTypeId ]
+
+        if ( parent ) {
+            return partTypes.byId[ parent.id ]
+        }
+
+        return null
+    }
+
+    getObjectPartType( objectId ) {
+        const { objects, partTypes } = this.state
+        const partTypeId = objects.byId[ objectId ].partTypeId
+
+        return partTypes.byId[ partTypeId ]
+    }
+
+    getAttachPoints( objectId ) {
+        const object = this.state.objects.byId[ objectId ]
+
+        if ( object.metadata ) {
+            if ( object.metadata.attachPoints ) {
+                return object.metadata.attachPoints
+            }
+        }
+
+        return {}
+    }
+
+    getAttachPointPosition( objectId, attachPointName ) {
+        const attachPoints = this.getAttachPoints( objectId )
+
+        return attachPoints[ attachPointName ] || { x: 0, y: 0, z: 0 }
+    }
+
+    getPositionInsideParent( partType ) {
+        const {
+            id: parentPartTypeId,
+            attachPoint: parentAttachPoint,
+        } = partType.parent
+
+        const parentObjectId = this.getSelectedObjectId( parentPartTypeId )
+
+        return this.getAttachPointPosition( parentObjectId, parentAttachPoint )
+    }
+
+    /**
+     * Recursively walks through part types until it reaches the root parent and
+     * adds up all the attachpoint positions from the root to this partType
+     * @param { string|number } partTypeId 
+     */
+    computeGlobalPosition( partTypeId ) {
+        const partType = this.getPartType( partTypeId )
+
+        if ( !partType.parent ) {
+            return { x: 0, y: 0, z: 0 }
+        }
+        
+        const position = this.getPositionInsideParent( partType )
+        const parentPosition = this.computeGlobalPosition( partType.parent.id )
+
+        return {
+            x: position.x + parentPosition.x,
+            y: position.y + parentPosition.y,
+            z: position.z + parentPosition.z,
+        }
     }
 
     setSelected3dObject( partTypeId, newObject ) {
@@ -187,6 +275,10 @@ class App extends Component {
     }
 
     /* bound methods below */
+
+    getGlobalPosition = partTypeId => {
+        return this.computeGlobalPosition( partTypeId )
+    }
 
     showLoader = () => {
         this.setState({
@@ -370,6 +462,7 @@ class App extends Component {
                     getObject = { this.get3dObject }
                     getParentObject = { this.getParent3dObject }
                     getObjectByAttachPoint = { this.get3dObjectByAttachPoint }
+                    getGlobalPosition = { this.getGlobalPosition }
 
                     data = { uploadedObjectData }
                     
