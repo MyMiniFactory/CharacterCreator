@@ -17,7 +17,7 @@ import {
 } from '../../util/helpers'
 import MmfApi from '../../util/api';
 
-import { ACCEPTED_OBJECT_FILE_EXTENSIONS } from '../../constants'
+import { ACCEPTED_OBJECT_FILE_EXTENSIONS, POSITION_0_0_0 } from '../../constants'
 
 import './App.css'
 
@@ -199,6 +199,18 @@ class App extends Component {
         return this.getAttachPointPosition( parentObjectId, parentAttachPoint )
     }
 
+    getPosition( partType ) {
+        const object = this.getSelectedObject( partType.id )
+
+        if ( object.metadata ) {
+            if ( object.metadata.position ) {
+                return object.metadata.position
+            }
+        }
+
+        return POSITION_0_0_0
+    }
+
     /**
      * Recursively walks through part types until it reaches the root parent and
      * adds up all the attachpoint positions from the root to this partType
@@ -208,16 +220,20 @@ class App extends Component {
         const partType = this.getPartType( partTypeId )
 
         if ( !partType.parent ) {
-            return { x: 0, y: 0, z: 0 }
+            return POSITION_0_0_0
         }
-        
-        const position = this.getPositionInsideParent( partType )
-        const parentPosition = this.computeGlobalPosition( partType.parent.id )
+
+        const parentPartType = this.getPartType( partType.parent.id )
+
+        const parentObjectPosition = this.getPosition( parentPartType )
+        const attachPointPosition = this.getPositionInsideParent( partType )
+
+        const result = this.computeGlobalPosition( partType.parent.id ) // recursive step
 
         return {
-            x: position.x + parentPosition.x,
-            y: position.y + parentPosition.y,
-            z: position.z + parentPosition.z,
+            x: result.x + attachPointPosition.x - parentObjectPosition.x,
+            y: result.y + attachPointPosition.y - parentObjectPosition.y,
+            z: result.z + attachPointPosition.z - parentObjectPosition.z,
         }
     }
 
