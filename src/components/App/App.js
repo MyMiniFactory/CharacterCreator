@@ -280,6 +280,13 @@ class App extends Component {
         return this.computeGlobalPosition( partTypeId )
     }
 
+    getParentAttachPointPosition = partType => {
+        if ( !partType.parent ) {
+            return { x: 0, y: 0, z: 0 }
+        }
+        return this.getPositionInsideParent( partType )
+    }
+
     showLoader = () => {
         this.setState({
             isLoading: true
@@ -466,6 +473,7 @@ class App extends Component {
                     getParentObject = { this.getParent3dObject }
                     getObjectByAttachPoint = { this.get3dObjectByAttachPoint }
                     getGlobalPosition = { this.getGlobalPosition }
+                    getParentAttachPointPosition = { this.getParentAttachPointPosition }
 
                     data = { uploadedObjectData }
                     
