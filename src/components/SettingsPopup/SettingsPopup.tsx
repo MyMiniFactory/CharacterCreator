@@ -1,4 +1,5 @@
 import React, { useState, useMemo, ChangeEvent, FormEvent } from 'react';
+import ChipInput from 'material-ui-chip-input';
 import cn from 'classnames';
 
 import commonStyles from '../../shared-styles/button.module.css';
@@ -21,6 +22,7 @@ type StateTypes = {
     name: string;
     price: number;
     description: string;
+    tags: string[];
     isPrivate: boolean;
     imageUrl: string;
     imagePath: string | null;
@@ -38,6 +40,7 @@ const SettingsPopup: React.FunctionComponent<PropTypes> = props => {
         name: props.name,
         price: props.price,
         description: props.description,
+        tags: props.tags,
         isPrivate: props.isPrivate,
         imageUrl: props.imageUrl,
         imagePath: null,
@@ -227,6 +230,16 @@ const SettingsPopup: React.FunctionComponent<PropTypes> = props => {
                             styles.description,
                         )}
                     />
+
+                    <label htmlFor="label_tags">Tags:</label>
+                    <ChipInput
+                        id="label_tags"
+                        value={['asd', 'plm']}
+                        onAdd={(chip) => console.log(chip)}
+                        onDelete={(chip, index) => console.log(chip, index)}
+                    >
+
+                    </ChipInput>
 
                     <label htmlFor="label_image" className={styles.label}>
                         Thumbnail
