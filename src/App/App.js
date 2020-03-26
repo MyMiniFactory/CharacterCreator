@@ -177,7 +177,7 @@ const App = props => {
 
     const setSelected3dObject = (partTypeId, newObject) => {
         sceneManager.add(partTypeId, newObject);
-        sceneManager.rescaleContainerToFitObjects(4);
+        // sceneManager.rescaleContainerToFitObjects(4);
         sceneManager.renderScene();
     };
 
@@ -248,7 +248,7 @@ const App = props => {
                 sceneManager.add(partTypeId, objects3DMap[partTypeId]);
             }
 
-            sceneManager.rescaleContainerToFitObjects(4);
+            // sceneManager.rescaleContainerToFitObjects(4);
             sceneManager.renderScene();
             sceneManager.saveCamera();
 
