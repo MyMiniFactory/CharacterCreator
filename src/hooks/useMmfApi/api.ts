@@ -135,6 +135,27 @@ class MmfApi {
     async unfollow() {
         await axios.get(this.api.routes.unfollow);
     }
+
+    async uploadImage(image: File) {
+        const formData = new FormData();
+        formData.set('fileToUpload', image);
+
+        type UploadImageResponse = {
+            path: string;
+            url: string;
+        };
+        const { data } = await axios.post<UploadImageResponse>(
+            this.api.routes.uploadImage,
+            formData,
+            {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
+            },
+        );
+
+        return data;
+    }
 }
 
 export default MmfApi;

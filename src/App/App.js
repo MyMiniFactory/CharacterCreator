@@ -376,6 +376,10 @@ const App = props => {
         }
     };
 
+    const uploadImage = async image => {
+        return api.uploadImage(image);
+    };
+
     const handleSaveChanges = async fields => {
         try {
             const updatedCustomizer = await api.patchCustomizer(fields);
@@ -665,6 +669,7 @@ const App = props => {
                         onSave={handleSaveChanges}
                         onClose={handleCloseSettings}
                         userCanSetPrice={props.canPublishToStore}
+                        uploadImage={uploadImage}
                     />
                 </div>
             )}
