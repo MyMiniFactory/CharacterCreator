@@ -7,6 +7,7 @@ import styles from './SettingsPopup.module.scss';
 import { ImportButtonV2 } from '../ImportButton';
 import axios from 'axios';
 import { arraysEqual } from '../../util/helpers';
+import MmfApi from '../../hooks/useMmfApi/api';
 
 const VISIBILITY_PRIVATE = 'private';
 const VISIBILITY_PUBLIC = 'public';
@@ -36,6 +37,7 @@ type PropTypes = {
     userCanSetPrice: boolean;
     currency: string;
     onSave: (filedsToPatch: FiledsToPatch) => void;
+    uploadImage: (image: File) => Promise<ReturnType<MmfApi['uploadImage']>>;
 } & StateTypes;
 
 const SettingsPopup: React.FunctionComponent<PropTypes> = props => {
@@ -91,42 +93,15 @@ const SettingsPopup: React.FunctionComponent<PropTypes> = props => {
             return;
         }
 
-        const CDN_URL =
-            process.env.NODE_ENV === 'production'
-                ? 'https://cdn.myminifactory.com'
-                : 'http://cdn.local';
-
-        const formData = new FormData();
-        formData.set('fileToUpload', file);
-
         try {
-            const { data } = await axios.post(
-                `${CDN_URL}/upload.php`,
-                formData,
-                {
-                    params: {
-                        path: 'customizer',
-                    },
-                    headers: {
-                        'Content-Type': 'multipart/form-data',
-                    },
-                },
-            );
-
-            const filename = data[0];
-
-            if (filename === 'A') {
-                // if upload fails, cdn responds with string 'Are you sure you should be doing this';
-                // therefore, if first element is 'A' => Error.
-                // if upload succeeds, cdn returns array with filename as first element
-                throw new Error('Upload Failed');
-            }
-
-            const imagePath = `/uploads/customizer-thumbnails/${filename}`;
+            const {
+                path: imagePath,
+                url: imageUrl,
+            } = await props.uploadImage(file);
 
             setState({
                 ...state,
-                imageUrl: `${CDN_URL}${imagePath}`,
+                imageUrl,
                 imagePath,
             });
         } catch (err) {
